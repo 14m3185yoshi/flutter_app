@@ -1,58 +1,82 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+void main() => runApp(MyApp());
 
-void main() => runApp(MaterialApp(home: FirstRoute()));
-
-class FirstRoute extends StatelessWidget {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('First Router'),
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            RaisedButton(
-              onPressed: () {
-                Navigator.push(context,//Navigator.pushが画面に遷移するためのメソッド。一つ目のcontextはひとまずおまじないと覚えておく。
-                  MaterialPageRoute(//ここからが画面の遷移先になる。このMaterialPageRouteは画面遷移の方法を指定するWidgetで、Android風のアニメーションで画面を切り替えてくれる。
-                      builder: (context) => SecondRoute()
-                ));
-              },
-              child: Text('Push Here',
-                style: TextStyle(fontSize: 20),
-            )),
-          ]
-        )
-      )
+      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class SecondRoute extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
+  MyHomePage({Key key, this.title}) : super(key: key);
+  final String title;
+
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  Future<SharedPreferences> _prefs
+    = SharedPreferences.getInstance();
+  int _counter = 0;
+
+  void _incrementCounter() async{
+    SharedPreferences prefs = await _prefs;
+    setState(() {
+      _counter = (prefs.getInt('counter')  ?? 0) + 1;
+    });
+    await prefs.setInt('counter', _counter);
+  }
+
   @override
   Widget build(BuildContext context) {
+    _getCount().then((value){
+      setState(() {
+        _counter = value;
+      });
+    });
     return Scaffold(
       appBar: AppBar(
-        title: Text('Second Route'),
+        title: Text(widget.title),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            RaisedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text('Push Here',
-                style: TextStyle(fontSize: 20),
-            )),
-          ]
-        )
-      )
+            Text(
+              'You have pushed the button this many times:',
+            ),
+            Text(
+              '$_counter',
+              style: Theme.of(context).textTheme.display1,
+            ),
+            FloatingActionButton(
+              onPressed: _incrementCounter,
+              tooltip: 'Increment',
+              child: Icon(Icons.add),
+            )
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _incrementCounter,
+        tooltip: 'Increment',
+        child: Icon(Icons.add),
+      ),
     );
+  }
+
+  Future<int> _getCount() async {
+    SharedPreferences prefs = await _prefs;
+    return (prefs.getInt('counter'));
   }
 }
